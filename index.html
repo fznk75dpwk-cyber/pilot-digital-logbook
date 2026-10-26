@@ -1,0 +1,69 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pilot Digital Logbook</title>
+<meta name="theme-color" content="#0b2438">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Pilot Logbook">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.svg">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--n:#0b2438;--b:#16577d;--p:#edf4f8;--g:#b58a3b;--l:#bdcbd4;--r:#8b3030}
+*{box-sizing:border-box}body{margin:0;background:#e8edf1;color:#17303f;font:14px system-ui,-apple-system,Segoe UI,sans-serif}header{background:linear-gradient(120deg,#081d2d,#16577d);color:#fff;padding:20px 4vw}h1{margin:0;font-size:23px}header p{margin:5px 0 0;color:#d7e6ef}main{max-width:1650px;margin:18px auto;padding:0 15px}.card{background:#fff;border-radius:9px;box-shadow:0 2px 12px #1232;margin-bottom:15px;overflow:hidden}.card h2{margin:0;padding:11px 14px;background:var(--p);font-size:14px;color:var(--n)}.pad{padding:14px}.grid{display:grid;grid-template-columns:repeat(6,1fr);gap:9px;padding:14px}.field{display:flex;flex-direction:column;gap:4px}label{font-size:10px;text-transform:uppercase;font-weight:800;color:#5c7280}input,textarea,select{border:1px solid var(--l);border-radius:5px;padding:8px;min-width:0}textarea{min-height:40px}button{border:0;border-radius:5px;padding:9px 13px;font-weight:750;cursor:pointer}.primary{background:var(--b);color:#fff}.secondary{background:#dfe9ef;color:var(--n)}.danger{background:var(--r);color:#fff}.span2{grid-column:span 2}.span3{grid-column:span 3}.auth{max-width:480px;margin:50px auto}.metrics{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;padding:13px}.metric{background:#f7f9fa;border:1px solid #dce5ea;border-top:3px solid var(--g);padding:10px;border-radius:5px}.metric small{display:block;color:#687d89}.metric strong{font-size:20px;color:var(--n)}nav{display:flex;gap:6px;padding:8px 15px;background:#fff;border-bottom:1px solid #ccd8df;position:sticky;top:0}nav button.active{background:var(--n);color:#fff}.page{display:none}.page.active{display:block}.tablewrap{overflow:auto}table{width:100%;border-collapse:collapse;min-width:2000px;font-size:10.5px}th,td{border:1px solid var(--l);padding:5px;text-align:center;white-space:nowrap}th{background:var(--n);color:#fff}tbody tr:nth-child(even){background:#f7f9fa}.status{padding:8px 14px;background:#eaf4ef;color:#276044;font-weight:700}.hidden{display:none!important}.topline{display:flex;justify-content:space-between;align-items:center;gap:10px}@media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}.metrics{grid-template-columns:repeat(2,1fr)}.span2,.span3{grid-column:span 2}}
+</style></head><body>
+<header><div class="topline"><div><h1>✈ PILOT DIGITAL LOGBOOK</h1><p>Version 3 • Secure Cloud Logbook • Decimal Flight Hours</p></div><div><button id="installPwa" class="secondary hidden">Install App</button> <button id="logout" class="secondary hidden">Sign Out</button></div></div></header>
+<div id="authView"><main><div class="card auth"><h2>Secure Sign In</h2><div class="pad"><div class="field"><label>Email</label><input id="email" type="email"></div><br><div class="field"><label>Password</label><input id="password" type="password" minlength="6"></div><br><button class="primary" id="signin">Sign In</button> <button class="secondary" id="signup">Create Account</button><p id="authMsg"></p></div></div></main></div>
+<div id="app" class="hidden"><nav><button data-p="dash" class="active">Dashboard</button><button data-p="entry">New Flight</button><button data-p="log">Logbook</button></nav><main>
+<section id="dash" class="page active"><div class="card"><h2>Career Totals</h2><div id="metrics" class="metrics"></div></div><div class="card"><h2>Cloud Status</h2><div class="status">● Connected to secure cloud database. Records synchronize across devices when signed in.</div></div></section>
+<section id="entry" class="page"><div class="card"><h2>Flight Entry</h2><div class="grid" id="form">
+<div class="field"><label>Date</label><input id="flight_date" type="date"></div><div class="field"><label>Departure Place</label><input id="departure_place"></div><div class="field"><label>Departure Time</label><input id="departure_time" type="time"></div><div class="field"><label>Arrival Place</label><input id="arrival_place"></div><div class="field"><label>Arrival Time</label><input id="arrival_time" type="time"></div><div class="field"><label>Aircraft Make / Model</label><input id="aircraft"></div>
+<div class="field"><label>Registration</label><input id="registration"></div><div class="field"><label>Single Engine</label><input id="sep" type="number" step=".01" min="0"></div><div class="field"><label>Multi Engine</label><input id="me" type="number" step=".01" min="0"></div><div class="field"><label>Total Time</label><input id="total_time" type="number" step=".01" min="0"></div><div class="field span2"><label>PIC Name</label><input id="pic_name"></div>
+<div class="field"><label>PIC</label><input id="pic" type="number" step=".01" min="0"></div><div class="field"><label>Co-Pilot</label><input id="copilot" type="number" step=".01" min="0"></div><div class="field"><label>Dual</label><input id="dual" type="number" step=".01" min="0"></div><div class="field"><label>Instructor</label><input id="instructor" type="number" step=".01" min="0"></div><div class="field"><label>Cross Country</label><input id="cross_country" type="number" step=".01" min="0"></div><div class="field"><label>Night</label><input id="night" type="number" step=".01" min="0"></div>
+<div class="field"><label>IFR</label><input id="ifr" type="number" step=".01" min="0"></div><div class="field"><label>Takeoffs Day</label><input id="takeoffs_day" type="number" min="0"></div><div class="field"><label>Takeoffs Night</label><input id="takeoffs_night" type="number" min="0"></div><div class="field"><label>Landings Day</label><input id="landings_day" type="number" min="0"></div><div class="field"><label>Landings Night</label><input id="landings_night" type="number" min="0"></div><div class="field"><label>Last Approach</label><input id="last_approach"></div>
+<div class="field"><label>Simulator Date</label><input id="simulator_date" type="date"></div><div class="field"><label>Simulator Type</label><input id="simulator_type"></div><div class="field"><label>Simulator Time</label><input id="simulator_time" type="number" step=".01" min="0"></div><div class="field span3"><label>Remarks & Endorsements</label><textarea id="remarks"></textarea></div><div class="span3"><button class="primary" id="save">Save to Cloud</button> <button class="secondary" id="clear">Clear</button></div></div></div></section>
+<section id="log" class="page"><div class="card"><h2>Search & Filters</h2><div class="grid"><div class="field"><label>From Date</label><input id="from" type="date"></div><div class="field"><label>To Date</label><input id="to" type="date"></div><div class="field"><label>Flight Type</label><select id="type"><option value="">All</option><option value="pic">PIC</option><option value="dual">Dual</option><option value="instructor">Instructor</option><option value="cross_country">Cross Country</option><option value="night">Night</option><option value="ifr">IFR</option><option value="sep">SEP</option><option value="me">ME</option></select></div><div class="field span3"><label>Search</label><input id="search" placeholder="Aircraft, registration, airport, PIC, remarks"></div></div></div>
+<div class="card"><h2>Flight Records</h2><div class="tablewrap"><table><thead><tr><th>Date</th><th>Dep</th><th>Time</th><th>Arr</th><th>Time</th><th>Aircraft</th><th>Reg</th><th>SEP</th><th>ME</th><th>Total</th><th>PIC Name</th><th>PIC</th><th>Co-Pilot</th><th>Dual</th><th>Instructor</th><th>Cross Country</th><th>Night</th><th>IFR</th><th>TO D</th><th>TO N</th><th>LDG D</th><th>LDG N</th><th>Approach</th><th>Sim Date</th><th>Sim Type</th><th>Sim Time</th><th>Remarks</th><th>Action</th></tr></thead><tbody id="rows"></tbody></table></div></div></section>
+</main></div>
+<script>
+const SUPABASE_URL='https://rgtnnzeyakmlrxbnpdgm.supabase.co', SUPABASE_KEY='sb_publishable_hTrFYu6VaEVUWygk-7omRA_664i4zX5'; const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const fields=["flight_date","departure_place","departure_time","arrival_place","arrival_time","aircraft","registration","sep","me","total_time","pic_name","pic","copilot","dual","instructor","cross_country","night","ifr","takeoffs_day","takeoffs_night","landings_day","landings_night","last_approach","simulator_date","simulator_type","simulator_time","remarks"];
+const nums=["sep","me","total_time","pic","copilot","dual","instructor","cross_country","night","ifr","simulator_time"], ints=["takeoffs_day","takeoffs_night","landings_day","landings_night"];
+let flights=[],editId=null; const $=x=>document.getElementById(x), val=x=>$(x).value;
+function n(x){return Number(x)||0} function fmt(x){return n(x).toFixed(2)}
+function payload(){let o={};fields.forEach(k=>o[k]=nums.includes(k)?n(val(k)):ints.includes(k)?Math.floor(n(val(k))):(val(k)||null));if(!o.total_time)o.total_time=o.sep+o.me;return o}
+function clearForm(){fields.forEach(k=>$(k).value="");editId=null;$("save").textContent="Save to Cloud"}
+async function load(){let {data,error}=await sb.from("flights").select("*").order("flight_date",{ascending:false});if(error)return alert(error.message);flights=data||[];render()}
+function render(){let d=flights.filter(x=>(!val("from")||x.flight_date>=val("from"))&&(!val("to")||x.flight_date<=val("to"))&&(!val("type")||n(x[val("type")])>0)&&(!val("search")||[x.aircraft,x.registration,x.departure_place,x.arrival_place,x.pic_name,x.remarks].join(" ").toLowerCase().includes(val("search").toLowerCase())));
+let ks=[["Total","total_time"],["PIC","pic"],["Dual","dual"],["Instructor","instructor"],["Cross Country","cross_country"],["Night","night"],["IFR","ifr"],["SEP","sep"],["ME","me"],["Flights",null]];$("metrics").innerHTML=ks.map(([a,k])=>`<div class="metric"><small>${a}</small><strong>${k?fmt(flights.reduce((s,x)=>s+n(x[k]),0)):flights.length}</strong></div>`).join("");
+$("rows").innerHTML=d.map(x=>`<tr><td>${x.flight_date}</td><td>${x.departure_place||""}</td><td>${(x.departure_time||"").slice(0,5)}</td><td>${x.arrival_place||""}</td><td>${(x.arrival_time||"").slice(0,5)}</td><td>${x.aircraft||""}</td><td>${x.registration||""}</td><td>${fmt(x.sep)}</td><td>${fmt(x.me)}</td><td>${fmt(x.total_time)}</td><td>${x.pic_name||""}</td><td>${fmt(x.pic)}</td><td>${fmt(x.copilot)}</td><td>${fmt(x.dual)}</td><td>${fmt(x.instructor)}</td><td>${fmt(x.cross_country)}</td><td>${fmt(x.night)}</td><td>${fmt(x.ifr)}</td><td>${x.takeoffs_day}</td><td>${x.takeoffs_night}</td><td>${x.landings_day}</td><td>${x.landings_night}</td><td>${x.last_approach||""}</td><td>${x.simulator_date||""}</td><td>${x.simulator_type||""}</td><td>${fmt(x.simulator_time)}</td><td>${x.remarks||""}</td><td><button class="secondary" onclick="editFlight('${x.id}')">Edit</button> <button class="danger" onclick="delFlight('${x.id}')">×</button></td></tr>`).join("")}
+async function authState(){let {data:{session}}=await sb.auth.getSession();$("authView").classList.toggle("hidden",!!session);$("app").classList.toggle("hidden",!session);$("logout").classList.toggle("hidden",!session);if(session)load()}
+$("signin").onclick=async()=>{let {error}=await sb.auth.signInWithPassword({email:val("email"),password:val("password")});$("authMsg").textContent=error?error.message:"Signed in.";if(!error)authState()}
+$("signup").onclick=async()=>{let {error}=await sb.auth.signUp({email:val("email"),password:val("password")});$("authMsg").textContent=error?error.message:"Account created. If email confirmation is enabled, check your inbox before signing in."}
+$("logout").onclick=async()=>{await sb.auth.signOut();authState()}
+$("save").onclick=async()=>{let o=payload();if(!o.flight_date)return alert("Enter flight date.");let res=editId?await sb.from("flights").update(o).eq("id",editId):await sb.from("flights").insert(o);if(res.error)return alert(res.error.message);clearForm();await load();show("log")}
+$("clear").onclick=clearForm;
+window.editFlight=id=>{let x=flights.find(a=>a.id===id);editId=id;fields.forEach(k=>$(k).value=x[k]??"");$("save").textContent="Update Cloud Record";show("entry")}
+window.delFlight=async id=>{if(!confirm("Delete this cloud record?"))return;let {error}=await sb.from("flights").delete().eq("id",id);if(error)return alert(error.message);load()}
+["from","to","type","search"].forEach(k=>$(k).addEventListener("input",render));
+function show(id){document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));$(id).classList.add("active");document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("active",b.dataset.p===id))}
+document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>show(b.dataset.p));
+sb.auth.onAuthStateChange(()=>setTimeout(authState,0));authState();
+
+let deferredPrompt=null;
+window.addEventListener("beforeinstallprompt",e=>{
+  e.preventDefault(); deferredPrompt=e;
+  document.getElementById("installPwa").classList.remove("hidden");
+});
+document.getElementById("installPwa").onclick=async()=>{
+  if(!deferredPrompt)return;
+  deferredPrompt.prompt();
+  await deferredPrompt.userChoice;
+  deferredPrompt=null;
+  document.getElementById("installPwa").classList.add("hidden");
+};
+window.addEventListener("appinstalled",()=>document.getElementById("installPwa").classList.add("hidden"));
+if("serviceWorker" in navigator){
+  window.addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js").catch(console.error));
+}
+</script></body></html>
