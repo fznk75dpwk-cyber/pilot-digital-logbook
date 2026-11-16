@@ -32,16 +32,16 @@ const SUPABASE_URL='https://rgtnnzeyakmlrxbnpdgm.supabase.co', SUPABASE_KEY='sb_
 const fields=["flight_date","departure_place","departure_time","arrival_place","arrival_time","aircraft","registration","sep","me","total_time","pic_name","pic","copilot","dual","instructor","cross_country","night","ifr","takeoffs_day","takeoffs_night","landings_day","landings_night","last_approach","simulator_date","simulator_type","simulator_time","remarks"];
 const nums=["sep","me","total_time","pic","copilot","dual","instructor","cross_country","night","ifr","simulator_time"], ints=["takeoffs_day","takeoffs_night","landings_day","landings_night"];
 let flights=[],editId=null; const $=x=>document.getElementById(x), val=x=>$(x).value;
-function n(x){return Number(x)||0} function fmt(x){return n(x).toFixed(2)}
+function n(x){return Number(x)||0} function fmt(x){return new Intl.NumberFormat('en-LK',{minimumFractionDigits:1,maximumFractionDigits:1}).format(n(x))} function fmtCount(x){return new Intl.NumberFormat('en-LK',{maximumFractionDigits:0}).format(n(x))}
 function payload(){let o={};fields.forEach(k=>o[k]=nums.includes(k)?n(val(k)):ints.includes(k)?Math.floor(n(val(k))):(val(k)||null));if(!o.total_time)o.total_time=o.sep+o.me;return o}
 function clearForm(){fields.forEach(k=>$(k).value="");editId=null;$("save").textContent="Save to Cloud"}
 async function load(){let {data,error}=await sb.from("flights").select("*").order("created_at",{ascending:false}).order("id",{ascending:false});if(error)return alert(error.message);flights=data||[];render()}
 function safe(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function render(){let d=flights.filter(x=>(!val('from')||x.flight_date>=val('from'))&&(!val('to')||x.flight_date<=val('to'))&&(!val('type')||n(x[val('type')])>0)&&(!val('search')||[x.aircraft,x.registration,x.departure_place,x.arrival_place,x.pic_name,x.remarks].join(' ').toLowerCase().includes(val('search').toLowerCase())));
 let ks=[['Total','total_time'],['PIC','pic'],['Dual','dual'],['Instructor','instructor'],['Cross Country','cross_country'],['Night','night'],['IFR','ifr'],['SEP','sep'],['ME','me'],['Flights',null]];
-$('metrics').innerHTML=ks.map(([a,k])=>`<div class="metric"><small>${a}</small><strong>${k?fmt(flights.reduce((s,x)=>s+n(x[k]),0)):flights.length}</strong></div>`).join('');
+$('metrics').innerHTML=ks.map(([a,k])=>`<div class="metric"><small>${a}</small><strong>${k?fmt(flights.reduce((s,x)=>s+n(x[k]),0)):fmtCount(flights.length)}</strong></div>`).join('');
 let cols=['flight_date','departure_place','departure_time','arrival_place','arrival_time','aircraft','registration','sep','me','total_time','pic_name','pic','copilot','dual','instructor','cross_country','night','ifr','takeoffs_day','takeoffs_night','landings_day','landings_night','last_approach','simulator_date','simulator_type','simulator_time','remarks'];
-$('rows').innerHTML=d.map(x=>`<tr>${cols.map(k=>`<td>${safe(nums.includes(k)?fmt(x[k]):(k.endsWith('_time')&&typeof x[k]==='string'?x[k].slice(0,5):x[k]))}</td>`).join('')}<td><button class="secondary" data-edit-flight="${x.id}">Edit</button> <button class="danger" data-del-flight="${x.id}">×</button></td></tr>`).join('');
+$('rows').innerHTML=d.map(x=>`<tr>${cols.map(k=>`<td>${safe(nums.includes(k)?fmt(x[k]):(ints.includes(k)?fmtCount(x[k]):(k.endsWith('_time')&&typeof x[k]==='string'?x[k].slice(0,5):x[k])))}</td>`).join('')}<td><button class="secondary" data-edit-flight="${x.id}">Edit</button> <button class="danger" data-del-flight="${x.id}">×</button></td></tr>`).join('');
 }
 async function authState(){let {data:{session}}=await sb.auth.getSession();$("authView").classList.toggle("hidden",!!session);$("app").classList.toggle("hidden",!session);$("logout").classList.toggle("hidden",!session);if(session){await Promise.all([load(),loadSolos(),loadReceipts()]);buildPeriods();renderPayments()}}
 $("signin").onclick=async()=>{let {error}=await sb.auth.signInWithPassword({email:val("email"),password:val("password")});$("authMsg").textContent=error?error.message:"Signed in.";if(!error)authState()}
@@ -68,7 +68,7 @@ $('soloSave').onclick=async()=>{let o=soloPayload();if(!o.solo_date||!(o.hours>0
 function renderSolos(){$('soloRows').innerHTML=solos.map(x=>`<tr>${[x.solo_date,x.solo_type,x.student_name,x.aircraft,x.registration,x.departure_place,fmt(x.hours),x.remarks].map(v=>`<td>${safe(v)}</td>`).join('')}<td><button class="secondary" data-edit-solo="${x.id}">Edit</button> <button class="danger" data-del-solo="${x.id}">×</button></td></tr>`).join('')}
 function editSolo(id){let x=solos.find(s=>s.id===id);if(!x)return;soloEditId=id;soloFields.forEach(k=>$(k).value=x[soloMap[k]]??'');$('solo_hours').value=x.hours;$('soloSave').textContent='Update Observed Solo';show('solo');window.scrollTo(0,0)}
 async function delSolo(id){if(!confirm('Delete this observed solo record?'))return;let {error}=await sb.from('observed_solos').delete().eq('id',id);if(error)return alert(error.message);await loadSolos()}
-const money=v=>new Intl.NumberFormat('en-LK',{minimumFractionDigits:2,maximumFractionDigits:2}).format(v);
+const money=v=>new Intl.NumberFormat('en-LK',{minimumFractionDigits:1,maximumFractionDigits:1}).format(v);
 function isoDate(d){let y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');return `${y}-${m}-${day}`}
 function periodDates(start){let [y,m]=start.split('-').map(Number);let s=new Date(y,m-1,21);let e=new Date(y,m,20);return [isoDate(s),isoDate(e)]}
 function periodStart(date){let [y,m,d]=date.split('-').map(Number);return isoDate(new Date(y,m-(d>=21?1:2),21))}
