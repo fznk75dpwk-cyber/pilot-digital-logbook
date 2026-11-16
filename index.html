@@ -35,7 +35,7 @@ let flights=[],editId=null; const $=x=>document.getElementById(x), val=x=>$(x).v
 function n(x){return Number(x)||0} function fmt(x){return n(x).toFixed(2)}
 function payload(){let o={};fields.forEach(k=>o[k]=nums.includes(k)?n(val(k)):ints.includes(k)?Math.floor(n(val(k))):(val(k)||null));if(!o.total_time)o.total_time=o.sep+o.me;return o}
 function clearForm(){fields.forEach(k=>$(k).value="");editId=null;$("save").textContent="Save to Cloud"}
-async function load(){let {data,error}=await sb.from("flights").select("*").order("flight_date",{ascending:false});if(error)return alert(error.message);flights=data||[];render()}
+async function load(){let {data,error}=await sb.from("flights").select("*").order("created_at",{ascending:false}).order("id",{ascending:false});if(error)return alert(error.message);flights=data||[];render()}
 function safe(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function render(){let d=flights.filter(x=>(!val('from')||x.flight_date>=val('from'))&&(!val('to')||x.flight_date<=val('to'))&&(!val('type')||n(x[val('type')])>0)&&(!val('search')||[x.aircraft,x.registration,x.departure_place,x.arrival_place,x.pic_name,x.remarks].join(' ').toLowerCase().includes(val('search').toLowerCase())));
 let ks=[['Total','total_time'],['PIC','pic'],['Dual','dual'],['Instructor','instructor'],['Cross Country','cross_country'],['Night','night'],['IFR','ifr'],['SEP','sep'],['ME','me'],['Flights',null]];
